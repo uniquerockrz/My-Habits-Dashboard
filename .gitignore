@@ -159,4 +159,4 @@ cython_debug/
 #.idea/
 
 # Custom
-.streamlit/secrets.toml
+credentials.json

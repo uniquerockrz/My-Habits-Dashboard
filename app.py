@@ -2,7 +2,9 @@ import streamlit as st
 import gspread
 import pandas as pd
 
-gc = gspread.service_account_from_dict(st.secrets['gsheet'])
+secrets_file = 'credentials.json'
+
+gc = gspread.service_account(filename=secrets_file)
 g_sheet = gc.open_by_key('1chpKg4g_ReVQ4ciV2PxL_Y3S5hf5iy93OX3V6n7KdjQ')
 worksheet = g_sheet.worksheet('Form responses 1')
 df = pd.DataFrame(worksheet.get_all_records())
