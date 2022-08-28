@@ -96,10 +96,21 @@ def get_display_stats(df, statscol, average=False):
     dict_to_return['totals'] = total_dict    
 
     return dict_to_return
+
+def get_chart_data(df):
+    day_above = arrow.now().ceil('day').shift(days=-30).datetime
+    
+    last_30_days_df = df[(df.datetime >= day_above)]
+
+    return last_30_days_df
+
+last_30_days_df = get_chart_data(df)
     
 st.write('# Life Statistics')
 
 st.write('## Focus')
+
+st.line_chart(data=last_30_days_df, x='Date', y=['minutes_focus'], width=0, height=0, use_container_width=True)
 
 st.write('#### Totals')
 minutes_focus_metrics = get_display_stats(df, 'minutes_focus', True)
@@ -121,6 +132,8 @@ col_minutes_focus_avg5.metric('Total','{} hrs'.format(round((minutes_focus_metri
 
 st.write('## Meditation')
 
+st.line_chart(data=last_30_days_df, x='Date', y=['minutes_meditation'], width=0, height=0, use_container_width=True)
+
 st.write('#### Totals')
 minutes_meditation_metrics = get_display_stats(df, 'minutes_meditation', True)
 
@@ -140,6 +153,8 @@ col_minutes_meditation_avg4.metric('Last Month','{} mins'.format(round((minutes_
 col_minutes_meditation_avg5.metric('Total','{} mins'.format(round((minutes_meditation_metrics['totals']['average']), 2)) , delta=None, delta_color="normal", help=None)
 
 st.write('## Pages Read')
+
+st.bar_chart(data=last_30_days_df, x='Date', y=['pages_nonfiction', 'pages_fiction'], width=0, height=0, use_container_width=True)
 
 st.write('#### Totals')
 n_pages_metrics = get_display_stats(df, 'n_pages', True)
@@ -181,6 +196,8 @@ n_pages_fiction_total5.metric('Total','{}'.format(round((n_pages_fiction_metrics
 
 st.write('## Data Science')
 
+st.area_chart(data=last_30_days_df, x='Date', y=['sections_datascience', 'n_projects'], width=0, height=0, use_container_width=True)
+
 st.write('#### Sections')
 sections_datascience_metrics = get_display_stats(df, 'sections_datascience', False)
 
@@ -203,6 +220,8 @@ n_projects_total5.metric('Total','{}'.format(round((n_projects_metrics['totals']
 
 st.write('## Programming')
 
+st.area_chart(data=last_30_days_df, x='Date', y=['sections_programming', 'n_problems'], width=0, height=0, use_container_width=True)
+
 st.write('#### Sections')
 sections_programming_metrics = get_display_stats(df, 'sections_programming', False)
 
@@ -224,6 +243,8 @@ n_problems_total4.metric('Last Month','{}'.format(round((n_problems_metrics['las
 n_problems_total5.metric('Total','{}'.format(round((n_problems_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
 
 st.write('## Writing')
+
+st.area_chart(data=last_30_days_df, x='Date', y=['sections_writing', 'n_words'], width=0, height=0, use_container_width=True)
 
 st.write('#### Sections')
 sections_writing_metrics = get_display_stats(df, 'sections_writing', False)
