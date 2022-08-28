@@ -2,6 +2,9 @@ import streamlit as st
 import gspread
 import pandas as pd
 import arrow
+import numpy as np
+
+st.set_page_config(page_title='Life Statistics', page_icon=None, layout="wide", initial_sidebar_state="auto", menu_items=None)
 
 secrets_file = 'credentials.json'
 
@@ -29,6 +32,13 @@ def get_datetime_from_date(row):
     return row
 
 df = df.apply(get_datetime_from_date, axis=1)
+
+def get_total_pages(row):
+    total_pages = row['pages_fiction'] + row['pages_nonfiction']
+    row['n_pages'] = total_pages
+    return row
+
+df = df.apply(get_total_pages, axis=1)
 
 def get_display_stats(df, statscol, average=False):
     dict_to_return = dict()
@@ -73,11 +83,11 @@ def get_display_stats(df, statscol, average=False):
     total_dict['total'] = df[statscol].sum()
 
     if average == True:
-        this_week_dict['average'] = this_week_col.mean()
-        last_week_dict['average'] = last_week_col.mean()
-        this_month_dict['average'] = this_month_col.mean()
-        last_month_dict['average'] = last_month_col.mean()
-        total_dict['average'] = df[statscol].mean()
+        this_week_dict['average'] = np.nan_to_num(this_week_col.mean())
+        last_week_dict['average'] = np.nan_to_num(last_week_col.mean())
+        this_month_dict['average'] = np.nan_to_num(this_month_col.mean())
+        last_month_dict['average'] = np.nan_to_num(last_month_col.mean())
+        total_dict['average'] = np.nan_to_num(df[statscol].mean())
 
     dict_to_return['this_week'] = this_week_dict
     dict_to_return['last_week'] = last_week_dict
@@ -86,4 +96,159 @@ def get_display_stats(df, statscol, average=False):
     dict_to_return['totals'] = total_dict    
 
     return dict_to_return
+    
+st.write('# Life Statistics')
 
+st.write('## Focus')
+
+st.write('#### Totals')
+minutes_focus_metrics = get_display_stats(df, 'minutes_focus', True)
+
+col_minutes_focus_total1, col_minutes_focus_total2, col_minutes_focus_total3, col_minutes_focus_total4, col_minutes_focus_total5 = st.columns(5)
+col_minutes_focus_total1.metric('This Week','{} hrs'.format(round((minutes_focus_metrics['this_week']['total'] / 60), 2)) , delta='{} hrs'.format(round(round((minutes_focus_metrics['this_week']['total'] / 60), 2) - round((minutes_focus_metrics['last_week']['total'] / 60), 2) )), delta_color="normal", help=None)
+col_minutes_focus_total2.metric('Last Week','{} hrs'.format(round((minutes_focus_metrics['last_week']['total'] / 60), 2)) , delta=None, delta_color="normal", help=None)
+col_minutes_focus_total3.metric('This Month','{} hrs'.format(round((minutes_focus_metrics['this_month']['total'] / 60), 2)) , delta='{} hrs'.format(round(round((minutes_focus_metrics['this_month']['total'] / 60), 2) - round((minutes_focus_metrics['last_month']['total'] / 60), 2) )), delta_color="normal", help=None)
+col_minutes_focus_total4.metric('Last Month','{} hrs'.format(round((minutes_focus_metrics['last_month']['total'] / 60), 2)) , delta=None, delta_color="normal", help=None)
+col_minutes_focus_total5.metric('Total','{} hrs'.format(round((minutes_focus_metrics['totals']['total'] / 60), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Averages per day')
+col_minutes_focus_avg1, col_minutes_focus_avg2, col_minutes_focus_avg3, col_minutes_focus_avg4, col_minutes_focus_avg5 = st.columns(5)
+col_minutes_focus_avg1.metric('This Week','{} hrs'.format(round((minutes_focus_metrics['this_week']['average'] / 60), 2)) , delta='{} hrs'.format(round(round((minutes_focus_metrics['this_week']['average'] / 60), 2) - round((minutes_focus_metrics['last_week']['average'] / 60), 2) )), delta_color="normal", help=None)
+col_minutes_focus_avg2.metric('Last Week','{} hrs'.format(round((minutes_focus_metrics['last_week']['average'] / 60), 2)) , delta=None, delta_color="normal", help=None)
+col_minutes_focus_avg3.metric('This Month','{} hrs'.format(round((minutes_focus_metrics['this_month']['average'] / 60), 2)) , delta='{} hrs'.format(round(round((minutes_focus_metrics['this_month']['average'] / 60), 2) - round((minutes_focus_metrics['last_month']['average'] / 60), 2) )), delta_color="normal", help=None)
+col_minutes_focus_avg4.metric('Last Month','{} hrs'.format(round((minutes_focus_metrics['last_month']['average'] / 60), 2)) , delta=None, delta_color="normal", help=None)
+col_minutes_focus_avg5.metric('Total','{} hrs'.format(round((minutes_focus_metrics['totals']['average'] / 60), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('## Meditation')
+
+st.write('#### Totals')
+minutes_meditation_metrics = get_display_stats(df, 'minutes_meditation', True)
+
+col_minutes_meditation_total1, col_minutes_meditation_total2, col_minutes_meditation_total3, col_minutes_meditation_total4, col_minutes_meditation_total5 = st.columns(5)
+col_minutes_meditation_total1.metric('This Week','{} mins'.format(round((minutes_meditation_metrics['this_week']['total']), 2)) , delta='{} mins'.format(round(round((minutes_meditation_metrics['this_week']['total']), 2) - round((minutes_meditation_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+col_minutes_meditation_total2.metric('Last Week','{} mins'.format(round((minutes_meditation_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+col_minutes_meditation_total3.metric('This Month','{} mins'.format(round((minutes_meditation_metrics['this_month']['total']), 2)) , delta='{} mins'.format(round(round((minutes_meditation_metrics['this_month']['total']), 2) - round((minutes_meditation_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+col_minutes_meditation_total4.metric('Last Month','{} mins'.format(round((minutes_meditation_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+col_minutes_meditation_total5.metric('Total','{} mins'.format(round((minutes_meditation_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Averages per day')
+col_minutes_meditation_avg1, col_minutes_meditation_avg2, col_minutes_meditation_avg3, col_minutes_meditation_avg4, col_minutes_meditation_avg5 = st.columns(5)
+col_minutes_meditation_avg1.metric('This Week','{} mins'.format(round((minutes_meditation_metrics['this_week']['average']), 2)) , delta='{} mins'.format(round(round((minutes_meditation_metrics['this_week']['average']), 2) - round((minutes_meditation_metrics['last_week']['average']), 2) )), delta_color="normal", help=None)
+col_minutes_meditation_avg2.metric('Last Week','{} mins'.format(round((minutes_meditation_metrics['last_week']['average']), 2)) , delta=None, delta_color="normal", help=None)
+col_minutes_meditation_avg3.metric('This Month','{} mins'.format(round((minutes_meditation_metrics['this_month']['average']), 2)) , delta='{} mins'.format(round(round((minutes_meditation_metrics['this_month']['average']), 2) - round((minutes_meditation_metrics['last_month']['average']), 2) )), delta_color="normal", help=None)
+col_minutes_meditation_avg4.metric('Last Month','{} mins'.format(round((minutes_meditation_metrics['last_month']['average']), 2)) , delta=None, delta_color="normal", help=None)
+col_minutes_meditation_avg5.metric('Total','{} mins'.format(round((minutes_meditation_metrics['totals']['average']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('## Pages Read')
+
+st.write('#### Totals')
+n_pages_metrics = get_display_stats(df, 'n_pages', True)
+
+n_pages_total1, n_pages_total2, n_pages_total3, n_pages_total4, n_pages_total5 = st.columns(5)
+n_pages_total1.metric('This Week','{}'.format(round((n_pages_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((n_pages_metrics['this_week']['total']), 2) - round((n_pages_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+n_pages_total2.metric('Last Week','{}'.format(round((n_pages_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_pages_total3.metric('This Month','{}'.format(round((n_pages_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((n_pages_metrics['this_month']['total']), 2) - round((n_pages_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+n_pages_total4.metric('Last Month','{}'.format(round((n_pages_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_pages_total5.metric('Total','{}'.format(round((n_pages_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Averages per day')
+n_pages_avg1, n_pages_avg2, n_pages_avg3, n_pages_avg4, n_pages_avg5 = st.columns(5)
+n_pages_avg1.metric('This Week','{}'.format(round((n_pages_metrics['this_week']['average']), 2)) , delta='{}'.format(round(round((n_pages_metrics['this_week']['average']), 2) - round((n_pages_metrics['last_week']['average']), 2) )), delta_color="normal", help=None)
+n_pages_avg2.metric('Last Week','{}'.format(round((n_pages_metrics['last_week']['average']), 2)) , delta=None, delta_color="normal", help=None)
+n_pages_avg3.metric('This Month','{}'.format(round((n_pages_metrics['this_month']['average']), 2)) , delta='{}'.format(round(round((n_pages_metrics['this_month']['average']), 2) - round((n_pages_metrics['last_month']['average']), 2) )), delta_color="normal", help=None)
+n_pages_avg4.metric('Last Month','{}'.format(round((n_pages_metrics['last_month']['average']), 2)) , delta=None, delta_color="normal", help=None)
+n_pages_avg5.metric('Total','{}'.format(round((n_pages_metrics['totals']['average']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Non-Fiction')
+n_pages_nonfiction_metrics = get_display_stats(df, 'pages_nonfiction', False)
+
+n_pages_nonfiction_total1, n_pages_nonfiction_total2, n_pages_nonfiction_total3, n_pages_nonfiction_total4, n_pages_nonfiction_total5 = st.columns(5)
+n_pages_nonfiction_total1.metric('This Week','{}'.format(round((n_pages_nonfiction_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((n_pages_nonfiction_metrics['this_week']['total']), 2) - round((n_pages_nonfiction_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+n_pages_nonfiction_total2.metric('Last Week','{}'.format(round((n_pages_nonfiction_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_pages_nonfiction_total3.metric('This Month','{}'.format(round((n_pages_nonfiction_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((n_pages_nonfiction_metrics['this_month']['total']), 2) - round((n_pages_nonfiction_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+n_pages_nonfiction_total4.metric('Last Month','{}'.format(round((n_pages_nonfiction_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_pages_nonfiction_total5.metric('Total','{}'.format(round((n_pages_nonfiction_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Fiction')
+n_pages_fiction_metrics = get_display_stats(df, 'pages_fiction', False)
+
+n_pages_fiction_total1, n_pages_fiction_total2, n_pages_fiction_total3, n_pages_fiction_total4, n_pages_fiction_total5 = st.columns(5)
+n_pages_fiction_total1.metric('This Week','{}'.format(round((n_pages_fiction_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((n_pages_fiction_metrics['this_week']['total']), 2) - round((n_pages_fiction_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+n_pages_fiction_total2.metric('Last Week','{}'.format(round((n_pages_fiction_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_pages_fiction_total3.metric('This Month','{}'.format(round((n_pages_fiction_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((n_pages_fiction_metrics['this_month']['total']), 2) - round((n_pages_fiction_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+n_pages_fiction_total4.metric('Last Month','{}'.format(round((n_pages_fiction_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_pages_fiction_total5.metric('Total','{}'.format(round((n_pages_fiction_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('## Data Science')
+
+st.write('#### Sections')
+sections_datascience_metrics = get_display_stats(df, 'sections_datascience', False)
+
+sections_datascience_total1, sections_datascience_total2, sections_datascience_total3, sections_datascience_total4, sections_datascience_total5 = st.columns(5)
+sections_datascience_total1.metric('This Week','{}'.format(round((sections_datascience_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((sections_datascience_metrics['this_week']['total']), 2) - round((sections_datascience_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+sections_datascience_total2.metric('Last Week','{}'.format(round((sections_datascience_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+sections_datascience_total3.metric('This Month','{}'.format(round((sections_datascience_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((sections_datascience_metrics['this_month']['total']), 2) - round((sections_datascience_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+sections_datascience_total4.metric('Last Month','{}'.format(round((sections_datascience_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+sections_datascience_total5.metric('Total','{}'.format(round((sections_datascience_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Projects')
+n_projects_metrics = get_display_stats(df, 'n_projects', False)
+
+n_projects_total1, n_projects_total2, n_projects_total3, n_projects_total4, n_projects_total5 = st.columns(5)
+n_projects_total1.metric('This Week','{}'.format(round((n_projects_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((n_projects_metrics['this_week']['total']), 2) - round((n_projects_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+n_projects_total2.metric('Last Week','{}'.format(round((n_projects_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_projects_total3.metric('This Month','{}'.format(round((n_projects_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((n_projects_metrics['this_month']['total']), 2) - round((n_projects_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+n_projects_total4.metric('Last Month','{}'.format(round((n_projects_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_projects_total5.metric('Total','{}'.format(round((n_projects_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('## Programming')
+
+st.write('#### Sections')
+sections_programming_metrics = get_display_stats(df, 'sections_programming', False)
+
+sections_programming_total1, sections_programming_total2, sections_programming_total3, sections_programming_total4, sections_programming_total5 = st.columns(5)
+sections_programming_total1.metric('This Week','{}'.format(round((sections_programming_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((sections_programming_metrics['this_week']['total']), 2) - round((sections_programming_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+sections_programming_total2.metric('Last Week','{}'.format(round((sections_programming_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+sections_programming_total3.metric('This Month','{}'.format(round((sections_programming_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((sections_programming_metrics['this_month']['total']), 2) - round((sections_programming_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+sections_programming_total4.metric('Last Month','{}'.format(round((sections_programming_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+sections_programming_total5.metric('Total','{}'.format(round((sections_programming_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Problems')
+n_problems_metrics = get_display_stats(df, 'n_problems', False)
+
+n_problems_total1, n_problems_total2, n_problems_total3, n_problems_total4, n_problems_total5 = st.columns(5)
+n_problems_total1.metric('This Week','{}'.format(round((n_problems_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((n_problems_metrics['this_week']['total']), 2) - round((n_problems_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+n_problems_total2.metric('Last Week','{}'.format(round((n_problems_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_problems_total3.metric('This Month','{}'.format(round((n_problems_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((n_problems_metrics['this_month']['total']), 2) - round((n_problems_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+n_problems_total4.metric('Last Month','{}'.format(round((n_problems_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_problems_total5.metric('Total','{}'.format(round((n_problems_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('## Writing')
+
+st.write('#### Sections')
+sections_writing_metrics = get_display_stats(df, 'sections_writing', False)
+
+sections_writing_total1, sections_writing_total2, sections_writing_total3, sections_writing_total4, sections_writing_total5 = st.columns(5)
+sections_writing_total1.metric('This Week','{}'.format(round((sections_writing_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((sections_writing_metrics['this_week']['total']), 2) - round((sections_writing_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+sections_writing_total2.metric('Last Week','{}'.format(round((sections_writing_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+sections_writing_total3.metric('This Month','{}'.format(round((sections_writing_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((sections_writing_metrics['this_month']['total']), 2) - round((sections_writing_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+sections_writing_total4.metric('Last Month','{}'.format(round((sections_writing_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+sections_writing_total5.metric('Total','{}'.format(round((sections_writing_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Words Total')
+n_words_metrics = get_display_stats(df, 'n_words', True)
+
+n_words_total1, n_words_total2, n_words_total3, n_words_total4, n_words_total5 = st.columns(5)
+n_words_total1.metric('This Week','{}'.format(round((n_words_metrics['this_week']['total']), 2)) , delta='{}'.format(round(round((n_words_metrics['this_week']['total']), 2) - round((n_words_metrics['last_week']['total']), 2) )), delta_color="normal", help=None)
+n_words_total2.metric('Last Week','{}'.format(round((n_words_metrics['last_week']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_words_total3.metric('This Month','{}'.format(round((n_words_metrics['this_month']['total']), 2)) , delta='{}'.format(round(round((n_words_metrics['this_month']['total']), 2) - round((n_words_metrics['last_month']['total']), 2) )), delta_color="normal", help=None)
+n_words_total4.metric('Last Month','{}'.format(round((n_words_metrics['last_month']['total']), 2)) , delta=None, delta_color="normal", help=None)
+n_words_total5.metric('Total','{}'.format(round((n_words_metrics['totals']['total']), 2)) , delta=None, delta_color="normal", help=None)
+
+st.write('#### Averages per day')
+n_words_avg1, n_words_avg2, n_words_avg3, n_words_avg4, n_words_avg5 = st.columns(5)
+n_words_avg1.metric('This Week','{}'.format(round((n_words_metrics['this_week']['average']), 2)) , delta='{}'.format(round(round((n_words_metrics['this_week']['average']), 2) - round((n_words_metrics['last_week']['average']), 2) )), delta_color="normal", help=None)
+n_words_avg2.metric('Last Week','{}'.format(round((n_words_metrics['last_week']['average']), 2)) , delta=None, delta_color="normal", help=None)
+n_words_avg3.metric('This Month','{}'.format(round((n_words_metrics['this_month']['average']), 2)) , delta='{}'.format(round(round((n_words_metrics['this_month']['average']), 2) - round((n_words_metrics['last_month']['average']), 2) )), delta_color="normal", help=None)
+n_words_avg4.metric('Last Month','{}'.format(round((n_words_metrics['last_month']['average']), 2)) , delta=None, delta_color="normal", help=None)
+n_words_avg5.metric('Total','{}'.format(round((n_words_metrics['totals']['average']), 2)) , delta=None, delta_color="normal", help=None)
